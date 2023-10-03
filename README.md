@@ -2,7 +2,7 @@
 
 <!-- <p><img src="figures/gfm.png" width="1000" /></p> -->
 <div align="center">
-    <img src="figures/gfm.png" height="250px" />
+    <img src="gfm.png" height="250px" />
 </div>
 <!-- <img src="gfm.png" width="300"> -->
 
