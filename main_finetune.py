@@ -60,7 +60,6 @@ def parse_option():
                         help='root of output folder, the full path is <output>/<model_name>/<tag> (default: output)')
     parser.add_argument('--tag', help='tag of experiment')
     parser.add_argument('--eval', action='store_true', help='Perform evaluation only')
-    parser.add_argument('--no_val', action='store_true', help='Perform evaluation only')
     parser.add_argument('--throughput', action='store_true', help='Test throughput only')
     parser.add_argument('--train_frac', type=float, default=1.0, help="fraction of training data")
 
@@ -122,16 +121,14 @@ def main(config):
 
     if config.MODEL.RESUME:
         max_accuracy = load_checkpoint(config, model_without_ddp, optimizer, lr_scheduler, logger)
-        if not config.NO_VAL:
-            acc1, acc5, loss = validate(config, data_loader_val, model)
-            logger.info(f"Accuracy of the network on the {len(dataset_val)} test images: {acc1:.1f}%")
+        acc1, acc5, loss = validate(config, data_loader_val, model)
+        logger.info(f"Accuracy of the network on the {len(dataset_val)} test images: {acc1:.1f}%")
         if config.EVAL_MODE:
             return
     elif config.PRETRAINED:
         load_pretrained(config, model_without_ddp, logger)
-        if not config.NO_VAL:
-            acc1, acc5, loss = validate(config, data_loader_val, model)
-            logger.info(f"Accuracy of the pretrained network on the {len(dataset_val)} test images: {acc1:.1f}%")
+        acc1, acc5, loss = validate(config, data_loader_val, model)
+        logger.info(f"Accuracy of the pretrained network on the {len(dataset_val)} test images: {acc1:.1f}%")
 
     if config.THROUGHPUT_MODE:
         throughput(data_loader_val, model, logger)
@@ -143,10 +140,7 @@ def main(config):
         data_loader_train.sampler.set_epoch(epoch)
 
         train_one_epoch(config, model, criterion, data_loader_train, optimizer, epoch, mixup_fn, lr_scheduler)
-        if not config.NO_VAL:
-            acc1, acc5, loss = validate(config, data_loader_val, model)
-        else:
-            acc1 = epoch
+        acc1, acc5, loss = validate(config, data_loader_val, model)
         logger.info(f"Accuracy of the network on the {len(dataset_val)} test images: {acc1:.1f}%")
         if dist.get_rank() == 0 and (acc1 > max_accuracy):
             save_checkpoint(config, 'max', model_without_ddp, max_accuracy, optimizer, lr_scheduler, logger)
